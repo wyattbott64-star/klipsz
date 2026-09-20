@@ -259,6 +259,121 @@
         font-size: 32px;
       }
     }
+
+    /* KLIP FEED */
+    .welcomeHero {
+      min-height: 55vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: opacity .35s ease, transform .35s ease, max-height .35s ease, padding .35s ease;
+      overflow: hidden;
+      max-height: 700px;
+    }
+    .welcomeHero.hidden {
+      opacity: 0;
+      transform: translateY(-35px);
+      max-height: 0;
+      min-height: 0;
+      padding: 0;
+      pointer-events: none;
+    }
+    .feedControls {
+      position: sticky;
+      top: 75px;
+      z-index: 8;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0 18px;
+    }
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .klipCard {
+      min-height: 75vh;
+      background: #151515;
+      border: 1px solid #292929;
+      border-radius: 18px;
+      overflow: hidden;
+      scroll-margin-top: 90px;
+      display: flex;
+      flex-direction: column;
+    }
+    .klipVideoWrap {
+      background: #000;
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .klipVideo {
+      width: 100%;
+      max-height: 70vh;
+      display: block;
+      background: #000;
+    }
+    .klipInfo {
+      padding: 15px;
+    }
+    .klipTop {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .miniPfp {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .klipTitle {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .klipActions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 13px;
+    }
+    .shareModalResults {
+      max-height: 300px;
+      overflow: auto;
+      margin-top: 10px;
+    }
+    .shareUser {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .shareUser:hover {
+      background: #282828;
+    }
+    .shareUser img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .muted {
+      color: #888;
+      font-size: 13px;
+    }
+    @media(max-width:700px) {
+      .klipCard { min-height: 70vh; }
+      .klipVideoWrap { min-height: 50vh; }
+      .feedControls { top: 68px; }
+    }
+
   </style>
 </head>
 
@@ -294,14 +409,23 @@
   <!-- HOME -->
   <section id="homePage" class="page active">
 
-    <div class="welcome">
+    <div id="welcomeHero" class="welcomeHero">
       <h1>Welcome to Klip 👋</h1>
-      <p>Search for people, discover creators, and build your profile.</p>
+      <p>Scroll up to enter the video feed.</p>
+      <p class="muted">Manual scrolling is always on. Auto Scroll is optional.</p>
+    </div>
+
+    <div class="feedControls">
+      <button id="autoScrollButton" class="dark" onclick="toggleAutoScroll()">Auto Scroll ▶</button>
+      <button class="dark" onclick="loadFeed()">Refresh Feed</button>
+    </div>
+
+    <div id="feed" class="feed">
+      <div class="empty">No Klips have been posted yet.</div>
     </div>
 
     <div id="searchResults" class="results"></div>
-
-    <div id="homeMessage" class="empty">
+    <div id="homeMessage" class="empty" style="display:none">
       Search a username above to find people.
     </div>
 
@@ -407,6 +531,20 @@
 </div>
 
 
+
+<!-- SHARE MODAL -->
+<div id="shareModal" class="modalBackground">
+  <div class="modal">
+    <h2>Share Klip</h2>
+    <p class="muted">Choose a Klip profile to share this video with.</p>
+    <input id="shareSearch" placeholder="Search username..." oninput="searchShareUsers()">
+    <div id="shareResults" class="shareModalResults"></div>
+    <div class="modalButtons">
+      <button class="dark" onclick="closeShare()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="status" class="status"></div>
 
 
@@ -431,6 +569,7 @@
     setDoc,
     updateDoc,
     getDocs,
+    addDoc,
     query,
     where,
     arrayUnion,
@@ -462,6 +601,11 @@
 
   let currentUser = null;
   let viewedUser = null;
+  let feedKlips = [];
+  let autoScrollOn = false;
+  let autoScrollTimer = null;
+  let shareKlipId = null;
+
 
 
   const defaultPfp =
@@ -522,6 +666,7 @@
   onAuthStateChanged(auth, async (user) => {
 
     currentUser = user;
+    loadFeed();
 
     const loginButton =
       document.getElementById("loginButton");
@@ -811,7 +956,10 @@
 
     if(!viewedUser) return;
 
-    if(currentUser.uid === viewedUser.uid) return;
+    if(currentUser.uid === viewedUser.uid) {
+      status("You can't follow yourself.");
+      return;
+    }
 
 
     const myRef =
@@ -1100,7 +1248,251 @@
   };
 
 
+
+  // LOAD SHARED KLIP FEED
+  window.loadFeed = async function() {
+    const feed = document.getElementById("feed");
+    feed.innerHTML = `<div class="loading">Loading Klips...</div>`;
+
+    try {
+      const snapshot = await getDocs(collection(db, "klips"));
+      feedKlips = [];
+      snapshot.forEach(snap => {
+        feedKlips.push({ id: snap.id, ...snap.data() });
+      });
+
+      feedKlips.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      if(!feedKlips.length) {
+        feed.innerHTML = `<div class="empty">
+          No Klips have been posted yet.<br>
+          <span class="muted">Your feed is ready for videos once Klips are added.</span>
+        </div>`;
+        return;
+      }
+
+      feed.innerHTML = "";
+
+      feedKlips.forEach((klip, index) => {
+        const card = document.createElement("article");
+        card.className = "klipCard";
+        card.id = "klip-" + klip.id;
+
+        const pfp = escapeHtml(klip.photoURL || defaultPfp);
+        const name = escapeHtml(klip.name || "Klip User");
+        const username = escapeHtml(klip.username || "");
+        const title = escapeHtml(klip.title || "Untitled Klip");
+        const videoUrl = escapeHtml(klip.videoUrl || "");
+
+        card.innerHTML = `
+          <div class="klipVideoWrap">
+            <video class="klipVideo" controls playsinline preload="metadata" src="${videoUrl}"></video>
+          </div>
+          <div class="klipInfo">
+            <div class="klipTop">
+              <img class="miniPfp" src="${pfp}" alt="Profile picture">
+              <div>
+                <div class="klipTitle">${title}</div>
+                <div class="username">@${username}</div>
+              </div>
+            </div>
+            <div class="klipActions">
+              <button class="dark" onclick="openProfile('${escapeAttr(klip.ownerUid || "")}')">Profile</button>
+              <button class="green" onclick="openShare('${escapeAttr(klip.id)}')">Share</button>
+            </div>
+          </div>
+        `;
+
+        const video = card.querySelector("video");
+        video.addEventListener("ended", () => {
+          if(autoScrollOn) goToNextKlip(index);
+        });
+
+        feed.appendChild(card);
+      });
+
+    } catch(error) {
+      console.error(error);
+      feed.innerHTML = `<div class="empty">
+        Could not load the Klip feed.<br>
+        <span class="muted">Make sure your Firestore rules allow reading the klips collection.</span>
+      </div>`;
+    }
+  };
+
+  function goToNextKlip(index) {
+    const next = document.getElementById("klip-" + (feedKlips[index + 1]?.id || ""));
+    if(next) {
+      next.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      stopAutoScroll();
+    }
+  }
+
+  window.toggleAutoScroll = function() {
+    if(autoScrollOn) {
+      stopAutoScroll();
+    } else {
+      startAutoScroll();
+    }
+  };
+
+  function startAutoScroll() {
+    autoScrollOn = true;
+    const button = document.getElementById("autoScrollButton");
+    button.textContent = "Auto Scroll ■";
+    button.classList.add("green");
+
+    autoScrollTimer = setInterval(() => {
+      const cards = [...document.querySelectorAll(".klipCard")];
+      if(!cards.length) return;
+
+      const currentY = window.scrollY + 120;
+      let currentIndex = 0;
+
+      cards.forEach((card, i) => {
+        if(card.offsetTop <= currentY) currentIndex = i;
+      });
+
+      const next = cards[currentIndex + 1];
+      if(next) {
+        next.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        stopAutoScroll();
+      }
+    }, 5000);
+  }
+
+  function stopAutoScroll() {
+    autoScrollOn = false;
+    if(autoScrollTimer) {
+      clearInterval(autoScrollTimer);
+      autoScrollTimer = null;
+    }
+    const button = document.getElementById("autoScrollButton");
+    if(button) {
+      button.textContent = "Auto Scroll ▶";
+      button.classList.remove("green");
+    }
+  }
+
+  // Welcome screen disappears after the user starts scrolling into the feed.
+  window.addEventListener("scroll", () => {
+    const hero = document.getElementById("welcomeHero");
+    if(hero && window.scrollY > 40) {
+      hero.classList.add("hidden");
+    }
+  });
+
+  // SHARE A KLIP TO ANOTHER PROFILE
+  window.openShare = function(klipId) {
+    if(!currentUser) {
+      status("Sign in first.");
+      return;
+    }
+
+    shareKlipId = klipId;
+    document.getElementById("shareSearch").value = "";
+    document.getElementById("shareResults").innerHTML =
+      `<div class="empty">Search for a profile to share with.</div>`;
+    document.getElementById("shareModal").classList.add("show");
+  };
+
+  window.closeShare = function() {
+    shareKlipId = null;
+    document.getElementById("shareModal").classList.remove("show");
+  };
+
+  window.searchShareUsers = async function() {
+    const text = document.getElementById("shareSearch").value.trim().toLowerCase();
+    const results = document.getElementById("shareResults");
+
+    if(!text) {
+      results.innerHTML = `<div class="empty">Search for a profile.</div>`;
+      return;
+    }
+
+    results.innerHTML = `<div class="loading">Searching...</div>`;
+
+    try {
+      const q = query(
+        collection(db, "users"),
+        where("usernameLower", ">=", text),
+        where("usernameLower", "<=", text + "\uf8ff")
+      );
+
+      const snapshot = await getDocs(q);
+      results.innerHTML = "";
+
+      let found = false;
+
+      snapshot.forEach(docSnap => {
+        const user = docSnap.data();
+
+        // Don't show yourself as a share recipient.
+        if(currentUser && docSnap.id === currentUser.uid) return;
+
+        found = true;
+        const row = document.createElement("div");
+        row.className = "shareUser";
+
+        row.innerHTML = `
+          <img src="${escapeHtml(user.photoURL || defaultPfp)}">
+          <div>
+            <div class="resultName">${escapeHtml(user.name || "Klip User")}</div>
+            <div class="username">@${escapeHtml(user.username || "")}</div>
+          </div>
+        `;
+
+        row.onclick = () => shareToUser(docSnap.id, user);
+        results.appendChild(row);
+      });
+
+      if(!found) {
+        results.innerHTML = `<div class="empty">No profiles found.</div>`;
+      }
+    } catch(error) {
+      console.error(error);
+      results.innerHTML = `<div class="empty">Search error.</div>`;
+    }
+  };
+
+  window.shareToUser = async function(recipientUid, recipient) {
+    if(!currentUser || !shareKlipId) return;
+
+    if(currentUser.uid === recipientUid) {
+      status("You can't share to yourself.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "shares"), {
+        klipId: shareKlipId,
+        senderUid: currentUser.uid,
+        recipientUid: recipientUid,
+        recipientUsername: recipient.username || "",
+        createdAt: Date.now()
+      });
+
+      closeShare();
+      status("Klip shared with @" + (recipient.username || "user") + "!");
+    } catch(error) {
+      console.error(error);
+      status("Couldn't share this Klip.");
+    }
+  };
+
   // BASIC HTML ESCAPE
+
+
+  function escapeAttr(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("'", "&#039;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
 
   function escapeHtml(value) {
 

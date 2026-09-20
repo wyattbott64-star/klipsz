@@ -342,6 +342,26 @@
       flex-wrap: wrap;
       margin-top: 13px;
     }
+    .modalLabel {
+      display: block;
+      margin: 15px 0 7px;
+      font-weight: bold;
+    }
+    .modalInput {
+      width: 100%;
+      padding: 12px;
+      border-radius: 9px;
+      border: 1px solid #333;
+      background: #222;
+      color: white;
+      outline: none;
+    }
+    progress {
+      height: 10px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
     .shareModalResults {
       max-height: 300px;
       overflow: auto;
@@ -416,6 +436,7 @@
     </div>
 
     <div class="feedControls">
+      <button id="uploadButton" class="green" onclick="openUpload()">＋ Upload Klip</button>
       <button id="autoScrollButton" class="dark" onclick="toggleAutoScroll()">Auto Scroll ▶</button>
       <button class="dark" onclick="loadFeed()">Refresh Feed</button>
     </div>
@@ -533,6 +554,31 @@
 
 
 <!-- SHARE MODAL -->
+<div id="uploadModal" class="modal">
+  <div class="modalBox">
+    <h2>Upload a Klip</h2>
+    <p class="muted">Short = up to 30 seconds. Long = up to 20 minutes.</p>
+
+    <label class="modalLabel">Video</label>
+    <input id="videoFile" type="file" accept="video/*" onchange="checkSelectedVideo()">
+
+    <div id="videoDetails" class="muted" style="margin-top:10px"></div>
+
+    <label class="modalLabel">Title</label>
+    <input id="videoTitle" class="modalInput" type="text" maxlength="100" placeholder="Give your Klip a title">
+
+    <div id="uploadProgressWrap" style="display:none;margin-top:14px">
+      <div class="muted">Uploading...</div>
+      <progress id="uploadProgress" value="0" max="100" style="width:100%;margin-top:6px"></progress>
+    </div>
+
+    <div class="modalButtons">
+      <button class="dark" onclick="closeUpload()">Cancel</button>
+      <button id="startUploadButton" class="green" onclick="uploadKlip()">Upload</button>
+    </div>
+  </div>
+</div>
+
 <div id="shareModal" class="modalBackground">
   <div class="modal">
     <h2>Share Klip</h2>
@@ -576,6 +622,13 @@
     arrayRemove
   } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
+  import {
+    getStorage,
+    ref,
+    uploadBytesResumable,
+    getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js";
+
 
   // YOUR FIREBASE CONFIG
 
@@ -595,6 +648,7 @@
   const auth = getAuth(app);
 
   const db = getFirestore(app);
+  const storage = getStorage(app);
 
   const provider = new GoogleAuthProvider();
 
@@ -674,9 +728,12 @@
     const myProfileButton =
       document.getElementById("myProfileButton");
 
+    const uploadButton = document.getElementById("uploadButton");
+
     if(user) {
 
       loginButton.style.display = "none";
+      if(uploadButton) uploadButton.style.display = "inline-block";
 
       myProfileButton.style.display = "block";
 
@@ -690,6 +747,7 @@
       loginButton.style.display = "block";
 
       myProfileButton.style.display = "none";
+      if(uploadButton) uploadButton.style.display = "inline-block";
 
     }
 
@@ -1383,6 +1441,193 @@
       hero.classList.add("hidden");
     }
   });
+
+  // UPLOAD A KLIP
+  let selectedVideoFile = null;
+
+  window.openUpload = function() {
+    if(!currentUser) {
+      status("Sign in first to upload.");
+      return;
+    }
+
+    selectedVideoFile = null;
+    document.getElementById("videoFile").value = "";
+    document.getElementById("videoTitle").value = "";
+    document.getElementById("videoDetails").textContent = "";
+    document.getElementById("uploadProgressWrap").style.display = "none";
+    document.getElementById("startUploadButton").disabled = false;
+    document.getElementById("uploadModal").classList.add("show");
+  };
+
+  window.closeUpload = function() {
+    document.getElementById("uploadModal").classList.remove("show");
+  };
+
+  window.checkSelectedVideo = function() {
+    const input = document.getElementById("videoFile");
+    const file = input.files && input.files[0];
+    const details = document.getElementById("videoDetails");
+
+    selectedVideoFile = file || null;
+
+    if(!file) {
+      details.textContent = "";
+      return;
+    }
+
+    if(!file.type.startsWith("video/")) {
+      selectedVideoFile = null;
+      input.value = "";
+      details.textContent = "Please choose a video file.";
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    const tempVideo = document.createElement("video");
+    tempVideo.preload = "metadata";
+
+    tempVideo.onloadedmetadata = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      const seconds = tempVideo.duration;
+
+      if(!Number.isFinite(seconds)) {
+        selectedVideoFile = null;
+        details.textContent = "Couldn't read the video length.";
+        return;
+      }
+
+      if(seconds > 1200) {
+        selectedVideoFile = null;
+        input.value = "";
+        details.textContent = "That video is over the 20-minute limit.";
+        return;
+      }
+
+      const type = seconds <= 30 ? "Short" : "Long-form";
+      details.textContent =
+        `${type} • ${formatDuration(seconds)} • ${formatBytes(file.size)}`;
+    };
+
+    tempVideo.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      selectedVideoFile = null;
+      details.textContent = "Couldn't read that video.";
+    };
+
+    tempVideo.src = objectUrl;
+  };
+
+  function formatDuration(seconds) {
+    seconds = Math.floor(seconds);
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m + ":" + String(s).padStart(2, "0");
+  }
+
+  function formatBytes(bytes) {
+    if(bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  window.uploadKlip = async function() {
+    if(!currentUser) {
+      status("Sign in first.");
+      return;
+    }
+
+    const file = selectedVideoFile;
+    const title = document.getElementById("videoTitle").value.trim();
+
+    if(!file) {
+      status("Choose a video first.");
+      return;
+    }
+
+    if(!title) {
+      status("Give your Klip a title.");
+      return;
+    }
+
+    const uploadButton = document.getElementById("startUploadButton");
+    const progressWrap = document.getElementById("uploadProgressWrap");
+    const progress = document.getElementById("uploadProgress");
+
+    uploadButton.disabled = true;
+    progressWrap.style.display = "block";
+    progress.value = 0;
+
+    try {
+      const tempUrl = URL.createObjectURL(file);
+      const tempVideo = document.createElement("video");
+      tempVideo.preload = "metadata";
+
+      const duration = await new Promise((resolve, reject) => {
+        tempVideo.onloadedmetadata = () => resolve(tempVideo.duration);
+        tempVideo.onerror = () => reject(new Error("Could not read video duration."));
+        tempVideo.src = tempUrl;
+      });
+
+      URL.revokeObjectURL(tempUrl);
+
+      if(!Number.isFinite(duration) || duration <= 0 || duration > 1200) {
+        throw new Error("Video must be between 1 second and 20 minutes.");
+      }
+
+      const type = duration <= 30 ? "short" : "long";
+
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storagePath =
+        `klips/${currentUser.uid}/${Date.now()}_${safeName}`;
+
+      const storageRef = ref(storage, storagePath);
+
+      const uploadTask = uploadBytesResumable(storageRef, file, {
+        contentType: file.type || "video/mp4"
+      });
+
+      await new Promise((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          snapshot => {
+            progress.value =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          },
+          reject,
+          resolve
+        );
+      });
+
+      const videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
+
+      const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+      const userData = userSnap.exists() ? userSnap.data() : {};
+
+      await addDoc(collection(db, "klips"), {
+        ownerUid: currentUser.uid,
+        title: title,
+        videoUrl: videoUrl,
+        storagePath: storagePath,
+        duration: duration,
+        type: type,
+        name: userData.name || currentUser.displayName || "Klip User",
+        username: userData.username || "",
+        photoURL: userData.photoURL || currentUser.photoURL || defaultPfp,
+        createdAt: Date.now()
+      });
+
+      closeUpload();
+      selectedVideoFile = null;
+      status("Klip uploaded!");
+      await loadFeed();
+
+    } catch(error) {
+      console.error(error);
+      status("Upload failed: " + (error.message || "unknown error"));
+      uploadButton.disabled = false;
+    }
+  };
 
   // SHARE A KLIP TO ANOTHER PROFILE
   window.openShare = function(klipId) {

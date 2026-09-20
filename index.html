@@ -703,10 +703,6 @@
 
   };
 
-  getRedirectResult(auth).catch(error => {
-    console.error("Google sign-in error:", error);
-    status("Sign-in failed: " + error.message);
-  });
 
 
   // LOGOUT
@@ -748,6 +744,7 @@
         user.photoURL || defaultPfp;
 
       await createUserIfNeeded(user);
+      status("Signed in as " + (user.displayName || user.email || "Google user") + "!");
 
     } else {
 
@@ -1316,7 +1313,7 @@
 
   // LOAD SHARED KLIP FEED
   window.loadFeed = async function() {
-    const feed = document.getElementById("feed");
+    const feed = document.getElementById("feedContainer");
     feed.innerHTML = `<div class="loading">Loading Klips...</div>`;
 
     try {

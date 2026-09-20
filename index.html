@@ -1,3476 +1,1122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Klip</title>
-
-<style>
-
-* {
-    box-sizing: border-box;
-}
-
-html,
-body {
-    margin: 0;
-    padding: 0;
-    background: #080808;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-body {
-    overflow: hidden;
-}
-
-/* =========================
-   NAVIGATION
-========================= */
-
-nav {
-    height: 65px;
-    background: #111;
-    border-bottom: 1px solid #292929;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 25px;
-
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-
-    z-index: 1000;
-}
-
-.logo {
-    color: #00bf8f;
-    font-size: 30px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.search {
-    width: 320px;
-
-    padding: 11px 18px;
-
-    background: #292929;
-    color: white;
-
-    border: none;
-    border-radius: 25px;
-
-    outline: none;
-}
-
-.nav-right {
-    display: flex;
-    gap: 10px;
-}
-
-.nav-button,
-.upload-button {
-    border: none;
-    border-radius: 6px;
-
-    padding: 10px 16px;
-
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.nav-button {
-    background: #292929;
-    color: white;
-}
-
-.upload-button {
-    background: #00bf8f;
-    color: white;
-}
-
-.nav-button:hover {
-    background: #3a3a3a;
-}
-
-.upload-button:hover {
-    background: #00a77d;
-}
-
-
-/* =========================
-   FEED PAGE
-========================= */
-
-.feed-page {
-    padding-top: 65px;
-
-    height: 100vh;
-}
-
-
-/* =========================
-   CONTENT TABS
-========================= */
-
-.content-tabs {
-    height: 55px;
-
-    background: #111;
-
-    border-bottom: 1px solid #292929;
-
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    gap: 35px;
-
-    position: fixed;
-
-    top: 65px;
-    left: 0;
-    right: 0;
-
-    z-index: 500;
-}
-
-.content-tab {
-    height: 55px;
-
-    background: none;
-    color: #888;
-
-    border: none;
-
-    font-size: 16px;
-    font-weight: bold;
-
-    cursor: pointer;
-
-    position: relative;
-}
-
-.content-tab.active {
-    color: white;
-}
-
-.content-tab.active::after {
-    content: "";
-
-    position: absolute;
-
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    height: 3px;
-
-    background: #00bf8f;
-
-    border-radius: 3px;
-}
-
-
-/* =========================
-   VIDEO FEED
-========================= */
-
-.video-feed {
-    width: 100%;
-
-    height: calc(100vh - 120px);
-
-    margin-top: 55px;
-
-    overflow-y: auto;
-
-    scroll-snap-type: y mandatory;
-
-    scrollbar-width: thin;
-}
-
-.video-container {
-    min-height: calc(100vh - 120px);
-
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    scroll-snap-align: start;
-
-    position: relative;
-
-    background: #080808;
-}
-
-
-/* =========================
-   VIDEO
-========================= */
-
-.video-wrapper {
-    height: 88%;
-
-    max-height: 820px;
-
-    aspect-ratio: 9 / 16;
-
-    background: black;
-
-    border-radius: 8px;
-
-    overflow: visible;
-
-    position: relative;
-
-    box-shadow: 0 0 35px rgba(0,0,0,.6);
-}
-
-.video-wrapper video {
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-
-    display: block;
-
-    border-radius: 8px;
-}
-
-
-/* =========================
-   VIDEO INFO
-========================= */
-
-.video-info {
-    position: absolute;
-
-    left: -20px;
-
-    transform: translateX(-100%);
-
-    bottom: 25px;
-
-    width: 330px;
-
-    text-shadow: 0 2px 5px black;
-}
-
-.video-user {
-    color: #00bf8f;
-
-    font-weight: bold;
-
-    font-size: 18px;
-}
-
-.video-title {
-    font-size: 21px;
-
-    margin-top: 8px;
-
-    font-weight: bold;
-}
-
-.video-type {
-    color: #999;
-
-    font-size: 13px;
-
-    margin-top: 6px;
-}
-
-
-/* =========================
-   SIDE ACTIONS
-========================= */
-
-.video-actions {
-    position: absolute;
-
-    right: -80px;
-
-    bottom: 80px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    gap: 18px;
-}
-
-.profile-action {
-    width: 58px;
-    height: 58px;
-
-    border-radius: 50%;
-
-    border: 3px solid white;
-
-    background: #00bf8f;
-
-    object-fit: cover;
-
-    cursor: pointer;
-
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    font-size: 22px;
-
-    font-weight: bold;
-
-    overflow: hidden;
-}
-
-.action-button {
-    width: 58px;
-    height: 58px;
-
-    border-radius: 50%;
-
-    border: none;
-
-    background: #222;
-
-    color: white;
-
-    cursor: pointer;
-
-    font-size: 21px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    flex-direction: column;
-}
-
-.action-button small {
-    font-size: 10px;
-
-    margin-top: 2px;
-}
-
-.action-button:hover {
-    background: #00bf8f;
-}
-
-.action-button.liked {
-    background: #00bf8f;
-}
-
-
-/* =========================
-   COMMENTS
-========================= */
-
-.comments-panel {
-    position: absolute;
-
-    left: calc(100% + 100px);
-
-    top: 50%;
-
-    transform: translateY(-50%);
-
-    width: 350px;
-
-    height: 480px;
-
-    background: #171717;
-
-    border-radius: 12px;
-
-    display: none;
-
-    flex-direction: column;
-
-    z-index: 50;
-
-    box-shadow: 0 10px 40px rgba(0,0,0,.5);
-}
-
-.comments-panel.open {
-    display: flex;
-}
-
-.comments-header {
-    height: 55px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    padding: 0 15px;
-
-    border-bottom: 1px solid #333;
-
-    font-weight: bold;
-}
-
-.close-comments {
-    background: none;
-
-    color: #aaa;
-
-    border: none;
-
-    cursor: pointer;
-
-    font-size: 18px;
-}
-
-.comments-list {
-    flex: 1;
-
-    overflow-y: auto;
-
-    padding: 12px;
-}
-
-.comment {
-    padding: 12px 0;
-
-    border-bottom: 1px solid #292929;
-}
-
-.comment-user {
-    color: #00bf8f;
-
-    font-weight: bold;
-}
-
-.comment-text {
-    margin-top: 4px;
-
-    color: #ddd;
-
-    line-height: 1.3;
-}
-
-.comment-input-area {
-    display: flex;
-
-    padding: 10px;
-
-    border-top: 1px solid #333;
-}
-
-.comment-input {
-    flex: 1;
-
-    background: #292929;
-
-    color: white;
-
-    border: none;
-
-    outline: none;
-
-    padding: 11px;
-
-    border-radius: 6px;
-}
-
-.comment-send {
-    margin-left: 6px;
-
-    background: #00bf8f;
-
-    color: white;
-
-    border: none;
-
-    border-radius: 6px;
-
-    padding: 0 13px;
-
-    cursor: pointer;
-}
-
-
-/* =========================
-   PROFILE
-========================= */
-
-.profile-page {
-    display: none;
-
-    padding-top: 90px;
-
-    height: 100vh;
-
-    overflow-y: auto;
-
-    max-width: 950px;
-
-    margin: auto;
-
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-.profile-page.active {
-    display: block;
-}
-
-.profile-header {
-    background: #181818;
-
-    border-radius: 12px;
-
-    padding: 35px;
-
-    text-align: center;
-}
-
-.profile-picture {
-    width: 120px;
-    height: 120px;
-
-    border-radius: 50%;
-
-    object-fit: cover;
-
-    background: #00bf8f;
-
-    margin: auto;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    font-size: 45px;
-    font-weight: bold;
-
-    overflow: hidden;
-
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-.profile-name {
-    font-size: 28px;
-
-    margin-top: 15px;
-}
-
-.profile-username {
-    color: #aaa;
-}
-
-.profile-buttons {
-    margin-top: 20px;
-
-    display: flex;
-
-    justify-content: center;
-
-    gap: 10px;
-}
-
-.profile-button {
-    border: none;
-
-    padding: 10px 20px;
-
-    border-radius: 6px;
-
-    background: #292929;
-
-    color: white;
-
-    cursor: pointer;
-
-    font-weight: bold;
-}
-
-.follow-button {
-    background: #00bf8f;
-}
-
-.stats {
-    display: flex;
-
-    justify-content: center;
-
-    gap: 50px;
-
-    margin-top: 25px;
-}
-
-.stat-number {
-    font-size: 22px;
-
-    font-weight: bold;
-}
-
-.stat-label {
-    color: #888;
-
-    font-size: 13px;
-}
-
-
-/* =========================
-   MY VIDEOS
-========================= */
-
-.my-videos-title {
-    margin-top: 35px;
-
-    margin-bottom: 20px;
-}
-
-.my-videos {
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fill, minmax(200px, 1fr));
-
-    gap: 15px;
-}
-
-.profile-video {
-    background: #181818;
-
-    border-radius: 8px;
-
-    overflow: hidden;
-}
-
-.profile-video video {
-    width: 100%;
-
-    height: 300px;
-
-    object-fit: cover;
-
-    background: black;
-}
-
-.profile-video-info {
-    padding: 12px;
-}
-
-.delete-button {
-    margin-top: 8px;
-
-    background: #333;
-
-    color: #ff5555;
-
-    border: none;
-
-    padding: 7px 10px;
-
-    border-radius: 5px;
-
-    cursor: pointer;
-}
-
-
-/* =========================
-   MODALS
-========================= */
-
-.modal {
-    display: none;
-
-    position: fixed;
-
-    inset: 0;
-
-    background: rgba(0,0,0,.78);
-
-    z-index: 2000;
-
-    align-items: center;
-
-    justify-content: center;
-}
-
-.modal.active {
-    display: flex;
-}
-
-.modal-box {
-    width: 90%;
-
-    max-width: 450px;
-
-    background: #202020;
-
-    padding: 25px;
-
-    border-radius: 12px;
-}
-
-.modal-box h2 {
-    margin-top: 0;
-}
-
-.modal-input {
-    width: 100%;
-
-    padding: 13px;
-
-    margin-bottom: 15px;
-
-    background: #303030;
-
-    color: white;
-
-    border: none;
-
-    border-radius: 6px;
-
-    outline: none;
-}
-
-.modal-buttons {
-    display: flex;
-
-    gap: 10px;
-}
-
-.modal-button {
-    flex: 1;
-
-    padding: 12px;
-
-    border: none;
-
-    border-radius: 6px;
-
-    cursor: pointer;
-
-    font-weight: bold;
-}
-
-.cancel {
-    background: #333;
-
-    color: white;
-}
-
-.confirm {
-    background: #00bf8f;
-
-    color: white;
-}
-
-
-/* =========================
-   PFP CROPPER
-========================= */
-
-.crop-area {
-    width: 280px;
-    height: 280px;
-
-    margin: 10px auto 20px;
-
-    border-radius: 50%;
-
-    overflow: hidden;
-
-    background: #080808;
-
-    position: relative;
-
-    border: 3px solid #00bf8f;
-}
-
-#cropImage {
-    position: absolute;
-
-    max-width: none;
-
-    cursor: move;
-
-    user-select: none;
-
-    transform-origin: center;
-}
-
-.crop-controls {
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    margin-bottom: 20px;
-}
-
-.crop-controls button {
-    width: 40px;
-    height: 40px;
-
-    border: none;
-
-    border-radius: 50%;
-
-    background: #333;
-
-    color: white;
-
-    cursor: pointer;
-
-    font-size: 18px;
-}
-
-.crop-controls input {
-    flex: 1;
-}
-
-
-/* =========================
-   EMPTY
-========================= */
-
-.empty {
-    text-align: center;
-
-    color: #777;
-
-    padding: 50px;
-
-    width: 100%;
-}
-
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media(max-width: 1200px) {
-
-    .video-info {
-        left: 10px;
-
-        transform: none;
-
-        bottom: 20px;
-
-        width: 300px;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klip</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    .video-actions {
-        right: -70px;
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: white;
+      font-family: Arial, sans-serif;
     }
 
-    .comments-panel {
-        left: calc(100% + 85px);
+    header {
+      height: 65px;
+      background: #151515;
+      border-bottom: 1px solid #292929;
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
-}
-
-@media(max-width: 850px) {
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #35d07f;
+      cursor: pointer;
+    }
 
     .search {
-        width: 180px;
+      flex: 1;
+      max-width: 550px;
+      margin: auto;
     }
 
-    .video-info {
-        left: 15px;
-
-        width: 250px;
-
-        text-shadow: 0 2px 8px black;
+    .search input {
+      width: 100%;
+      padding: 13px 18px;
+      border-radius: 25px;
+      border: 1px solid #333;
+      background: #222;
+      color: white;
+      outline: none;
+      font-size: 15px;
     }
 
-    .video-actions {
-        right: 10px;
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-weight: bold;
     }
 
-    .comments-panel {
-        left: auto;
-
-        right: 70px;
-
-        width: 300px;
-
-        height: 400px;
+    .green {
+      background: #35d07f;
+      color: #07140d;
     }
 
-}
+    .dark {
+      background: #252525;
+      color: white;
+    }
 
-</style>
+    .profileButton {
+      background: none;
+      padding: 0;
+    }
+
+    .profileButton img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    main {
+      max-width: 1050px;
+      margin: auto;
+      padding: 25px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .welcome {
+      padding: 35px 0;
+    }
+
+    .welcome h1 {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    .results {
+      margin-top: 20px;
+    }
+
+    .result {
+      background: #181818;
+      border: 1px solid #292929;
+      padding: 14px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .result img {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .resultName {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .username {
+      color: #999;
+      margin-top: 3px;
+    }
+
+    .profile {
+      text-align: center;
+      padding-top: 30px;
+    }
+
+    .bigPfp {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #35d07f;
+    }
+
+    .profile h1 {
+      margin-bottom: 5px;
+    }
+
+    .profileStats {
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 25px 0;
+    }
+
+    .empty {
+      color: #777;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .modalBackground {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modalBackground.show {
+      display: flex;
+    }
+
+    .modal {
+      width: 90%;
+      max-width: 430px;
+      background: #191919;
+      border: 1px solid #333;
+      border-radius: 18px;
+      padding: 25px;
+    }
+
+    .modal h2 {
+      margin-top: 0;
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 13px;
+      margin: 8px 0 15px;
+      background: #252525;
+      border: 1px solid #444;
+      color: white;
+      border-radius: 8px;
+    }
+
+    .modalButtons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .status {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      border: 1px solid #444;
+      padding: 12px 18px;
+      border-radius: 10px;
+      display: none;
+      z-index: 200;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .loading {
+      text-align: center;
+      color: #aaa;
+      padding: 30px;
+    }
+
+    @media(max-width:700px) {
+      header {
+        padding: 0 12px;
+        gap: 8px;
+      }
+
+      .logo {
+        font-size: 23px;
+      }
+
+      main {
+        padding: 15px;
+      }
+
+      .welcome h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
 </head>
-
 
 <body>
 
+<header>
+  <div class="logo" onclick="showHome()">Klip</div>
 
-<!-- =========================
-     NAVIGATION
-========================= -->
-
-<nav>
-
-    <div
-        class="logo"
-        onclick="goHome()"
-    >
-        Klip
-    </div>
-
-
+  <div class="search">
     <input
-        class="search"
-        id="search"
-        placeholder="Search Klips..."
+      id="searchInput"
+      type="text"
+      placeholder="Search people..."
+      oninput="searchPeople()"
     >
+  </div>
+
+  <button id="loginButton" class="green" onclick="login()">Sign in</button>
+
+  <button
+    id="myProfileButton"
+    class="profileButton"
+    style="display:none"
+    onclick="openMyProfile()"
+  >
+    <img id="headerPfp" src="">
+  </button>
+</header>
 
 
-    <div class="nav-right">
+<main>
 
-        <button
-            class="nav-button"
-            onclick="openProfile()"
-        >
-            Profile
-        </button>
+  <!-- HOME -->
+  <section id="homePage" class="page active">
+
+    <div class="welcome">
+      <h1>Welcome to Klip 👋</h1>
+      <p>Search for people, discover creators, and build your profile.</p>
+    </div>
+
+    <div id="searchResults" class="results"></div>
+
+    <div id="homeMessage" class="empty">
+      Search a username above to find people.
+    </div>
+
+  </section>
 
 
-        <button
-            class="upload-button"
-            onclick="openUpload()"
-        >
-            Upload
-        </button>
+  <!-- PROFILE -->
+  <section id="profilePage" class="page">
+
+    <div class="profile">
+
+      <img id="profilePfp" class="bigPfp" src="">
+
+      <h1 id="profileName">Loading...</h1>
+
+      <div id="profileUsername" class="username"></div>
+
+      <div id="profileStats" class="profileStats">
+        0 followers
+      </div>
+
+      <button id="followButton" class="green" onclick="toggleFollow()">
+        Follow
+      </button>
+
+      <div style="margin-top:15px">
+        <button class="dark" onclick="showHome()">← Back</button>
+      </div>
+
+      <div class="tabs">
+        <button class="dark">Klip's</button>
+      </div>
+
+      <div id="profileVideos" class="empty">
+        No Klips yet.
+      </div>
 
     </div>
 
-</nav>
+  </section>
 
 
+  <!-- MY PROFILE -->
+  <section id="myProfilePage" class="page">
 
-<!-- =========================
-     FEED
-========================= -->
+    <div class="profile">
 
-<div
-    class="feed-page"
-    id="feedPage"
->
+      <img id="myProfilePfp" class="bigPfp" src="">
 
-    <div class="content-tabs">
+      <h1 id="myProfileName">Your Profile</h1>
 
-        <button
-            class="content-tab active"
-            id="shortTab"
-            onclick="switchContent('short')"
-        >
-            Shorts
-        </button>
+      <div id="myProfileUsername" class="username"></div>
 
+      <br>
 
-        <button
-            class="content-tab"
-            id="longTab"
-            onclick="switchContent('long')"
-        >
-            Long-form
-        </button>
+      <button class="green" onclick="editProfile()">
+        Edit Profile
+      </button>
+
+      <button class="dark" onclick="logout()">
+        Sign out
+      </button>
+
+      <div class="tabs">
+        <button class="dark">My Klips</button>
+      </div>
+
+      <div class="empty">
+        Your Klips will appear here.
+      </div>
 
     </div>
 
+  </section>
 
-    <div
-        class="video-feed"
-        id="videoFeed"
-    ></div>
+</main>
+
+
+<!-- EDIT PROFILE MODAL -->
+
+<div id="editModal" class="modalBackground">
+
+  <div class="modal">
+
+    <h2>Edit Profile</h2>
+
+    <label>Display name</label>
+    <input id="editName" placeholder="Your name">
+
+    <label>Username</label>
+    <input id="editUsername" placeholder="username">
+
+    <label>Profile picture URL</label>
+    <input id="editPfp" placeholder="https://...">
+
+    <div class="modalButtons">
+      <button class="dark" onclick="closeEdit()">Cancel</button>
+      <button class="green" onclick="saveProfile()">Save</button>
+    </div>
+
+  </div>
 
 </div>
 
 
+<div id="status" class="status"></div>
 
-<!-- =========================
-     PROFILE
-========================= -->
 
-<div
-    class="profile-page"
-    id="profilePage"
->
+<script type="module">
 
-    <div class="profile-header">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
-        <div
-            class="profile-picture"
-            id="profilePicture"
-        >
-            Y
-        </div>
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
+  import {
+    getFirestore,
+    collection,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    getDocs,
+    query,
+    where,
+    arrayUnion,
+    arrayRemove
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-        <div
-            class="profile-name"
-            id="profileName"
-        >
-            You
-        </div>
 
+  // YOUR FIREBASE CONFIG
 
-        <div
-            class="profile-username"
-            id="profileUsername"
-        >
-            @you
-        </div>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAU654sP10sPaH0SlrpBFHvmJl-Y2NR7ZE",
+    authDomain: "klip-48f94.firebaseapp.com",
+    projectId: "klip-48f94",
+    storageBucket: "klip-48f94.firebasestorage.app",
+    messagingSenderId: "440103236219",
+    appId: "1:440103236219:web:a3cc919035975047d7a8de",
+    measurementId: "G-173KRF89VN"
+  };
 
 
-        <div class="profile-buttons">
+  const app = initializeApp(firebaseConfig);
 
-            <button
-                class="profile-button"
-                onclick="editProfile()"
-            >
-                Edit Profile
-            </button>
+  const auth = getAuth(app);
 
+  const db = getFirestore(app);
 
-            <button
-                class="profile-button follow-button"
-                id="followButton"
-                onclick="toggleFollow()"
-            >
-                Follow
-            </button>
+  const provider = new GoogleAuthProvider();
 
-        </div>
 
+  let currentUser = null;
+  let viewedUser = null;
 
-        <div class="stats">
 
-            <div>
+  const defaultPfp =
+    "https://ui-avatars.com/api/?background=35d07f&color=07140d&name=K";
 
-                <div
-                    class="stat-number"
-                    id="videoCount"
-                >
-                    0
-                </div>
 
-                <div class="stat-label">
-                    Klips
-                </div>
+  // STATUS MESSAGE
 
-            </div>
+  function status(message) {
 
+    const box = document.getElementById("status");
 
-            <div>
+    box.textContent = message;
+    box.classList.add("show");
 
-                <div
-                    class="stat-number"
-                    id="followers"
-                >
-                    0
-                </div>
+    setTimeout(() => {
+      box.classList.remove("show");
+    }, 2500);
+  }
 
-                <div class="stat-label">
-                    Followers
-                </div>
 
-            </div>
+  // LOGIN
 
+  window.login = async function() {
 
-            <div>
+    try {
 
-                <div
-                    class="stat-number"
-                    id="following"
-                >
-                    0
-                </div>
+      await signInWithPopup(auth, provider);
 
-                <div class="stat-label">
-                    Following
-                </div>
+      status("Signed in!");
 
-            </div>
+    } catch(error) {
 
-        </div>
+      console.error(error);
 
-    </div>
+      status("Sign-in failed: " + error.message);
 
+    }
 
-    <h2 class="my-videos-title">
-        My Klips
-    </h2>
+  };
 
 
-    <div
-        class="my-videos"
-        id="myVideos"
-    ></div>
+  // LOGOUT
 
-</div>
+  window.logout = async function() {
 
+    await signOut(auth);
 
+    showHome();
 
-<!-- =========================
-     UPLOAD MODAL
-========================= -->
+    status("Signed out.");
 
-<div
-    class="modal"
-    id="uploadModal"
->
+  };
 
-    <div class="modal-box">
 
-        <h2>
-            Upload a Klip
-        </h2>
+  // AUTH STATE
 
+  onAuthStateChanged(auth, async (user) => {
 
-        <input
-            class="modal-input"
-            id="videoTitle"
-            placeholder="Name your Klip..."
-            maxlength="60"
-        >
+    currentUser = user;
 
+    const loginButton =
+      document.getElementById("loginButton");
 
-        <input
-            type="file"
-            id="videoInput"
-            accept="video/*"
-            class="modal-input"
-        >
+    const myProfileButton =
+      document.getElementById("myProfileButton");
 
+    if(user) {
 
-        <p
-            id="videoLengthMessage"
-            style="color:#aaa;font-size:13px;"
-        >
-            Shorts: up to 30 seconds.
-            Long-form: up to 20 minutes.
-        </p>
+      loginButton.style.display = "none";
 
+      myProfileButton.style.display = "block";
 
-        <div class="modal-buttons">
+      document.getElementById("headerPfp").src =
+        user.photoURL || defaultPfp;
 
-            <button
-                class="modal-button cancel"
-                onclick="closeUpload()"
-            >
-                Cancel
-            </button>
-
-
-            <button
-                class="modal-button confirm"
-                onclick="saveVideo()"
-            >
-                Upload
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-<!-- =========================
-     PROFILE EDIT MODAL
-========================= -->
-
-<div
-    class="modal"
-    id="profileModal"
->
-
-    <div class="modal-box">
-
-        <h2>
-            Edit Profile
-        </h2>
-
-
-        <input
-            class="modal-input"
-            id="nameInput"
-            placeholder="Display name"
-            maxlength="30"
-        >
-
-
-        <input
-            class="modal-input"
-            id="usernameInput"
-            placeholder="Username"
-            maxlength="20"
-        >
-
-
-        <input
-            class="modal-input"
-            type="file"
-            id="pfpInput"
-            accept="image/*"
-        >
-
-
-        <div
-            id="cropEditor"
-            style="display:none;"
-        >
-
-            <div class="crop-area">
-
-                <img
-                    id="cropImage"
-                    draggable="false"
-                >
-
-            </div>
-
-
-            <div class="crop-controls">
-
-                <button
-                    onclick="zoomCrop(-0.1)"
-                >
-                    −
-                </button>
-
-
-                <input
-                    id="cropZoom"
-                    type="range"
-                    min="1"
-                    max="3"
-                    step="0.01"
-                    value="1"
-                    oninput="setCropZoom(this.value)"
-                >
-
-
-                <button
-                    onclick="zoomCrop(0.1)"
-                >
-                    +
-                </button>
-
-            </div>
-
-            <p
-                style="
-                text-align:center;
-                color:#888;
-                font-size:12px;
-                "
-            >
-                Drag the picture and use
-                the slider to crop it.
-            </p>
-
-        </div>
-
-
-        <div class="modal-buttons">
-
-            <button
-                class="modal-button cancel"
-                onclick="closeProfileEdit()"
-            >
-                Cancel
-            </button>
-
-
-            <button
-                class="modal-button confirm"
-                onclick="saveProfile()"
-            >
-                Save
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-<script>
-
-/* =========================================
-   DATABASE
-========================================= */
-
-let db;
-
-const request =
-    indexedDB.open(
-        "KlipDatabase",
-        2
-    );
-
-
-request.onupgradeneeded =
-    function(event) {
-
-        db =
-            event.target.result;
-
-
-        if (
-            !db.objectStoreNames.contains(
-                "videos"
-            )
-        ) {
-
-            db.createObjectStore(
-                "videos",
-                {
-                    keyPath: "id",
-                    autoIncrement: true
-                }
-            );
-
-        }
-
-    };
-
-
-request.onsuccess =
-    function(event) {
-
-        db =
-            event.target.result;
-
-
-        loadVideos();
-
-        loadProfile();
-
-    };
-
-
-request.onerror =
-    function() {
-
-        alert(
-            "Klip could not access browser storage."
-        );
-
-    };
-
-
-/* =========================================
-   PROFILE
-========================================= */
-
-let profile =
-    JSON.parse(
-        localStorage.getItem(
-            "klipProfile"
-        )
-    ) || {
-
-        name: "You",
-
-        username: "you",
-
-        pfp: "",
-
-        followers: 0,
-
-        following: 0,
-
-        followingMe: false
-
-    };
-
-
-function saveProfileData() {
-
-    localStorage.setItem(
-        "klipProfile",
-        JSON.stringify(
-            profile
-        )
-    );
-
-}
-
-
-function loadProfile() {
-
-    document.getElementById(
-        "profileName"
-    ).textContent =
-        profile.name;
-
-
-    document.getElementById(
-        "profileUsername"
-    ).textContent =
-        "@" +
-        profile.username;
-
-
-    document.getElementById(
-        "followers"
-    ).textContent =
-        profile.followers;
-
-
-    document.getElementById(
-        "following"
-    ).textContent =
-        profile.following;
-
-
-    const picture =
-        document.getElementById(
-            "profilePicture"
-        );
-
-
-    if (
-        profile.pfp
-    ) {
-
-        picture.style.backgroundImage =
-            `url(${profile.pfp})`;
-
-        picture.textContent =
-            "";
+      await createUserIfNeeded(user);
 
     } else {
 
-        picture.style.backgroundImage =
-            "";
+      loginButton.style.display = "block";
 
-        picture.textContent =
-            profile.name
-            .charAt(0)
-            .toUpperCase();
+      myProfileButton.style.display = "none";
 
     }
 
+  });
 
-    document.getElementById(
-        "followButton"
-    ).textContent =
-        profile.followingMe
-        ? "Following"
-        : "Follow";
 
-}
+  // CREATE USER PROFILE
 
+  async function createUserIfNeeded(user) {
 
-/* =========================================
-   PROFILE EDIT
-========================================= */
+    const userRef = doc(db, "users", user.uid);
 
-let cropData = {
+    const snap = await getDoc(userRef);
 
-    image: null,
+    if(!snap.exists()) {
 
-    zoom: 1,
+      const username =
+        makeUsername(user.displayName || "user");
 
-    x: 0,
+      await setDoc(userRef, {
 
-    y: 0
+        uid: user.uid,
 
-};
+        name: user.displayName || "Klip User",
 
+        username: username,
 
-function editProfile() {
+        usernameLower: username.toLowerCase(),
 
-    document.getElementById(
-        "nameInput"
-    ).value =
-        profile.name;
+        photoURL: user.photoURL || defaultPfp,
 
+        followers: [],
 
-    document.getElementById(
-        "usernameInput"
-    ).value =
-        profile.username;
+        following: [],
 
+        createdAt: Date.now()
 
-    document.getElementById(
-        "profileModal"
-    ).classList.add(
-        "active"
-    );
-
-}
-
-
-function closeProfileEdit() {
-
-    document.getElementById(
-        "profileModal"
-    ).classList.remove(
-        "active"
-    );
-
-
-    document.getElementById(
-        "cropEditor"
-    ).style.display =
-        "none";
-
-}
-
-
-/* =========================================
-   PFP FILE
-========================================= */
-
-document
-    .getElementById(
-        "pfpInput"
-    )
-    .addEventListener(
-        "change",
-        function() {
-
-            const file =
-                this.files[0];
-
-
-            if (!file) {
-
-                return;
-
-            }
-
-
-            const reader =
-                new FileReader();
-
-
-            reader.onload =
-                function(event) {
-
-                    cropData.image =
-                        event.target.result;
-
-
-                    cropData.zoom =
-                        1;
-
-
-                    cropData.x =
-                        0;
-
-
-                    cropData.y =
-                        0;
-
-
-                    const image =
-                        document.getElementById(
-                            "cropImage"
-                        );
-
-
-                    image.src =
-                        cropData.image;
-
-
-                    document.getElementById(
-                        "cropZoom"
-                    ).value =
-                        1;
-
-
-                    document.getElementById(
-                        "cropEditor"
-                    ).style.display =
-                        "block";
-
-
-                    setupCropImage();
-
-                };
-
-
-            reader.readAsDataURL(
-                file
-            );
-
-        }
-    );
-
-
-function setupCropImage() {
-
-    const image =
-        document.getElementById(
-            "cropImage"
-        );
-
-
-    image.onload =
-        function() {
-
-            const area =
-                document.querySelector(
-                    ".crop-area"
-                );
-
-
-            const scale =
-                Math.max(
-                    280 / image.naturalWidth,
-                    280 / image.naturalHeight
-                );
-
-
-            image.style.width =
-                image.naturalWidth *
-                scale +
-                "px";
-
-
-            image.style.height =
-                image.naturalHeight *
-                scale +
-                "px";
-
-
-            cropData.x =
-                (
-                    280 -
-                    image.naturalWidth *
-                    scale
-                ) / 2;
-
-
-            cropData.y =
-                (
-                    280 -
-                    image.naturalHeight *
-                    scale
-                ) / 2;
-
-
-            updateCrop();
-
-        };
-
-}
-
-
-function updateCrop() {
-
-    const image =
-        document.getElementById(
-            "cropImage"
-        );
-
-
-    image.style.left =
-        cropData.x +
-        "px";
-
-
-    image.style.top =
-        cropData.y +
-        "px";
-
-
-    image.style.transform =
-        `scale(${cropData.zoom})`;
-
-}
-
-
-function setCropZoom(
-    value
-) {
-
-    cropData.zoom =
-        parseFloat(
-            value
-        );
-
-
-    updateCrop();
-
-}
-
-
-function zoomCrop(
-    amount
-) {
-
-    cropData.zoom =
-        Math.min(
-            3,
-            Math.max(
-                1,
-                cropData.zoom +
-                amount
-            )
-        );
-
-
-    document.getElementById(
-        "cropZoom"
-    ).value =
-        cropData.zoom;
-
-
-    updateCrop();
-
-}
-
-
-/* =========================================
-   DRAG PFP
-========================================= */
-
-let dragging = false;
-
-let dragStartX = 0;
-
-let dragStartY = 0;
-
-let originalX = 0;
-
-let originalY = 0;
-
-
-const cropImage =
-    document.getElementById(
-        "cropImage"
-    );
-
-
-cropImage.addEventListener(
-    "mousedown",
-    function(event) {
-
-        dragging = true;
-
-        dragStartX =
-            event.clientX;
-
-        dragStartY =
-            event.clientY;
-
-        originalX =
-            cropData.x;
-
-        originalY =
-            cropData.y;
+      });
 
     }
-);
 
+  }
 
-document.addEventListener(
-    "mousemove",
-    function(event) {
 
-        if (!dragging) {
+  // CREATE AVAILABLE USERNAME
 
-            return;
-
-        }
-
-
-        cropData.x =
-            originalX +
-            (
-                event.clientX -
-                dragStartX
-            );
-
-
-        cropData.y =
-            originalY +
-            (
-                event.clientY -
-                dragStartY
-            );
-
-
-        updateCrop();
-
-    }
-);
-
-
-document.addEventListener(
-    "mouseup",
-    function() {
-
-        dragging = false;
-
-    }
-);
-
-
-/* =========================================
-   SAVE CROPPED PFP
-========================================= */
-
-function createCroppedPFP() {
-
-    return new Promise(
-        function(resolve) {
-
-            if (
-                !cropData.image
-            ) {
-
-                resolve(
-                    profile.pfp
-                );
-
-                return;
-
-            }
-
-
-            const canvas =
-                document.createElement(
-                    "canvas"
-                );
-
-
-            canvas.width =
-                300;
-
-            canvas.height =
-                300;
-
-
-            const ctx =
-                canvas.getContext(
-                    "2d"
-                );
-
-
-            const image =
-                new Image();
-
-
-            image.onload =
-                function() {
-
-                    const scale =
-                        Math.max(
-                            280 /
-                            image.naturalWidth,
-
-                            280 /
-                            image.naturalHeight
-                        );
-
-
-                    const width =
-                        image.naturalWidth *
-                        scale;
-
-
-                    const height =
-                        image.naturalHeight *
-                        scale;
-
-
-                    const drawX =
-                        cropData.x *
-                        (
-                            300 / 280
-                        );
-
-
-                    const drawY =
-                        cropData.y *
-                        (
-                            300 / 280
-                        );
-
-
-                    ctx.clearRect(
-                        0,
-                        0,
-                        300,
-                        300
-                    );
-
-
-                    ctx.save();
-
-
-                    ctx.beginPath();
-
-                    ctx.arc(
-                        150,
-                        150,
-                        150,
-                        0,
-                        Math.PI * 2
-                    );
-
-                    ctx.clip();
-
-
-                    ctx.drawImage(
-                        image,
-
-                        drawX,
-
-                        drawY,
-
-                        width *
-                        (
-                            300 / 280
-                        ),
-
-                        height *
-                        (
-                            300 / 280
-                        )
-                    );
-
-
-                    ctx.restore();
-
-
-                    resolve(
-                        canvas.toDataURL(
-                            "image/jpeg",
-                            .85
-                        )
-                    );
-
-                };
-
-
-            image.src =
-                cropData.image;
-
-        }
-    );
-
-}
-
-
-async function saveProfile() {
-
-    let name =
-        document.getElementById(
-            "nameInput"
-        ).value.trim();
-
+  function makeUsername(name) {
 
     let username =
-        document.getElementById(
-            "usernameInput"
-        ).value.trim();
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .slice(0, 15);
+
+    if(!username) username = "user";
+
+    username += Math.floor(Math.random() * 9999);
+
+    return username;
+
+  }
 
 
-    if (!name) {
+  // SEARCH PEOPLE
 
-        name = "You";
+  window.searchPeople = async function() {
+
+    const input =
+      document.getElementById("searchInput");
+
+    const text =
+      input.value.trim().toLowerCase();
+
+    const results =
+      document.getElementById("searchResults");
+
+    const message =
+      document.getElementById("homeMessage");
+
+
+    results.innerHTML = "";
+
+
+    if(!text) {
+
+      message.style.display = "block";
+
+      return;
 
     }
 
 
-    if (!username) {
+    message.style.display = "none";
 
-        username = "you";
+    results.innerHTML =
+      `<div class="loading">Searching...</div>`;
 
-    }
 
+    try {
 
-    username =
-        username
-        .replace(
-            "@",
-            ""
-        )
-        .replace(
-            /\s/g,
-            ""
+      const usersRef =
+        collection(db, "users");
+
+      const q =
+        query(
+          usersRef,
+          where("usernameLower", ">=", text),
+          where("usernameLower", "<=", text + "\uf8ff")
         );
 
 
-    profile.name =
-        name;
+      const snapshot =
+        await getDocs(q);
 
 
-    profile.username =
-        username;
+      results.innerHTML = "";
 
 
-    if (
-        cropData.image
-    ) {
+      if(snapshot.empty) {
 
-        profile.pfp =
-            await createCroppedPFP();
+        results.innerHTML =
+          `<div class="empty">No people found.</div>`;
+
+        return;
+
+      }
+
+
+      snapshot.forEach(docSnap => {
+
+        const user = docSnap.data();
+
+        const div =
+          document.createElement("div");
+
+        div.className = "result";
+
+
+        div.innerHTML = `
+
+          <img src="${escapeHtml(user.photoURL || defaultPfp)}">
+
+          <div>
+
+            <div class="resultName">
+              ${escapeHtml(user.name || "Klip User")}
+            </div>
+
+            <div class="username">
+              @${escapeHtml(user.username || "")}
+            </div>
+
+          </div>
+
+        `;
+
+
+        div.onclick = () =>
+          openProfile(user.uid);
+
+
+        results.appendChild(div);
+
+      });
+
+
+    } catch(error) {
+
+      console.error(error);
+
+      results.innerHTML =
+        `<div class="empty">
+          Search error. Check your Firestore rules.
+        </div>`;
+
+    }
+
+  };
+
+
+  // OPEN PROFILE
+
+  window.openProfile = async function(uid) {
+
+    const userSnap =
+      await getDoc(doc(db, "users", uid));
+
+    if(!userSnap.exists()) {
+
+      status("User not found.");
+
+      return;
 
     }
 
 
-    saveProfileData();
+    viewedUser = {
 
-    loadProfile();
+      uid: uid,
 
-    updateVideoUsernames();
+      ...userSnap.data()
 
-    closeProfileEdit();
-
-}
+    };
 
 
-/* =========================================
-   FOLLOW
-========================================= */
+    document.getElementById("homePage")
+      .classList.remove("active");
 
-function toggleFollow() {
+    document.getElementById("myProfilePage")
+      .classList.remove("active");
 
-    profile.followingMe =
-        !profile.followingMe;
+    document.getElementById("profilePage")
+      .classList.add("active");
 
 
-    if (
-        profile.followingMe
-    ) {
+    document.getElementById("profilePfp").src =
+      viewedUser.photoURL || defaultPfp;
 
-        profile.followers++;
+    document.getElementById("profileName").textContent =
+      viewedUser.name || "Klip User";
+
+    document.getElementById("profileUsername").textContent =
+      "@" + (viewedUser.username || "");
+
+    document.getElementById("profileStats").textContent =
+      (viewedUser.followers?.length || 0) + " followers";
+
+
+    const followButton =
+      document.getElementById("followButton");
+
+
+    if(currentUser && currentUser.uid === uid) {
+
+      followButton.style.display = "none";
 
     } else {
 
-        profile.followers--;
+      followButton.style.display = "inline-block";
+
+      const following =
+        viewedUser.followers?.includes(currentUser?.uid);
+
+      followButton.textContent =
+        following ? "Following" : "Follow";
+
+    }
+
+  };
+
+
+  // FOLLOW / UNFOLLOW
+
+  window.toggleFollow = async function() {
+
+    if(!currentUser) {
+
+      status("Sign in first.");
+
+      return;
 
     }
 
 
-    saveProfileData();
+    if(!viewedUser) return;
 
-    loadProfile();
+    if(currentUser.uid === viewedUser.uid) return;
 
-}
 
+    const myRef =
+      doc(db, "users", currentUser.uid);
 
-/* =========================================
-   UPLOAD
-========================================= */
+    const theirRef =
+      doc(db, "users", viewedUser.uid);
 
-function openUpload() {
 
-    document.getElementById(
-        "uploadModal"
-    ).classList.add(
-        "active"
-    );
+    const following =
+      viewedUser.followers?.includes(currentUser.uid);
 
-}
 
+    try {
 
-function closeUpload() {
+      if(following) {
 
-    document.getElementById(
-        "uploadModal"
-    ).classList.remove(
-        "active"
-    );
+        await updateDoc(theirRef, {
 
-
-    document.getElementById(
-        "videoInput"
-    ).value = "";
-
-}
-
-
-/* =========================================
-   VIDEO LENGTH CHECK
-========================================= */
-
-document
-    .getElementById(
-        "videoInput"
-    )
-    .addEventListener(
-        "change",
-        function() {
-
-            const file =
-                this.files[0];
-
-
-            if (!file) {
-
-                return;
-
-            }
-
-
-            const url =
-                URL.createObjectURL(
-                    file
-                );
-
-
-            const video =
-                document.createElement(
-                    "video"
-                );
-
-
-            video.preload =
-                "metadata";
-
-
-            video.onloadedmetadata =
-                function() {
-
-                    URL.revokeObjectURL(
-                        url
-                    );
-
-
-                    const seconds =
-                        video.duration;
-
-
-                    const message =
-                        document.getElementById(
-                            "videoLengthMessage"
-                        );
-
-
-                    if (
-                        seconds <= 30
-                    ) {
-
-                        message.textContent =
-                            "✓ This will be a Short.";
-
-                        message.style.color =
-                            "#00bf8f";
-
-                    } else if (
-                        seconds <= 1200
-                    ) {
-
-                        message.textContent =
-                            "✓ This will be Long-form.";
-
-                        message.style.color =
-                            "#00bf8f";
-
-                    } else {
-
-                        message.textContent =
-                            "✕ This video is longer than 20 minutes.";
-
-                        message.style.color =
-                            "#ff5555";
-
-                    }
-
-                };
-
-
-            video.src =
-                url;
-
-        }
-    );
-
-
-/* =========================================
-   SAVE VIDEO
-========================================= */
-
-function saveVideo() {
-
-    const title =
-        document.getElementById(
-            "videoTitle"
-        ).value.trim();
-
-
-    const file =
-        document.getElementById(
-            "videoInput"
-        ).files[0];
-
-
-    if (!file) {
-
-        alert(
-            "Choose a video first."
-        );
-
-        return;
-
-    }
-
-
-    const url =
-        URL.createObjectURL(
-            file
-        );
-
-
-    const video =
-        document.createElement(
-            "video"
-        );
-
-
-    video.preload =
-        "metadata";
-
-
-    video.onloadedmetadata =
-        function() {
-
-            URL.revokeObjectURL(
-                url
-            );
-
-
-            const duration =
-                video.duration;
-
-
-            if (
-                duration > 1200
-            ) {
-
-                alert(
-                    "Klip videos can be up to 20 minutes."
-                );
-
-                return;
-
-            }
-
-
-            let type;
-
-
-            if (
-                duration <= 30
-            ) {
-
-                type =
-                    "short";
-
-            } else {
-
-                type =
-                    "long";
-
-            }
-
-
-            const transaction =
-                db.transaction(
-                    ["videos"],
-                    "readwrite"
-                );
-
-
-            const store =
-                transaction.objectStore(
-                    "videos"
-                );
-
-
-            store.add({
-
-                title:
-                    title ||
-                    file.name,
-
-                video:
-                    file,
-
-                username:
-                    profile.username,
-
-                pfp:
-                    profile.pfp,
-
-                likes:
-                    0,
-
-                liked:
-                    false,
-
-                comments:
-                    [],
-
-                type:
-                    type,
-
-                duration:
-                    duration,
-
-                created:
-                    Date.now()
-
-            });
-
-
-            transaction.oncomplete =
-                function() {
-
-                    document.getElementById(
-                        "videoTitle"
-                    ).value =
-                        "";
-
-
-                    closeUpload();
-
-                    loadVideos();
-
-                };
-
-        };
-
-
-    video.src =
-        url;
-
-}
-
-
-/* =========================================
-   CONTENT TYPE
-========================================= */
-
-let currentContent =
-    "short";
-
-
-function switchContent(
-    type
-) {
-
-    currentContent =
-        type;
-
-
-    document.getElementById(
-        "shortTab"
-    ).classList.toggle(
-        "active",
-        type === "short"
-    );
-
-
-    document.getElementById(
-        "longTab"
-    ).classList.toggle(
-        "active",
-        type === "long"
-    );
-
-
-    loadVideos();
-
-}
-
-
-/* =========================================
-   LOAD VIDEOS
-========================================= */
-
-function loadVideos() {
-
-    const transaction =
-        db.transaction(
-            ["videos"],
-            "readonly"
-        );
-
-
-    const store =
-        transaction.objectStore(
-            "videos"
-        );
-
-
-    const request =
-        store.getAll();
-
-
-    request.onsuccess =
-        function() {
-
-            let videos =
-                request.result;
-
-
-            videos.sort(
-                (a,b) =>
-                b.created -
-                a.created
-            );
-
-
-            const filtered =
-                videos.filter(
-                    video =>
-                    video.type ===
-                    currentContent
-                );
-
-
-            displayFeed(
-                filtered
-            );
-
-
-            displayMyVideos(
-                videos
-            );
-
-
-            document.getElementById(
-                "videoCount"
-            ).textContent =
-                videos.length;
-
-        };
-
-}
-
-
-/* =========================================
-   DISPLAY FEED
-========================================= */
-
-function displayFeed(
-    videos
-) {
-
-    const feed =
-        document.getElementById(
-            "videoFeed"
-        );
-
-
-    feed.innerHTML = "";
-
-
-    if (
-        videos.length === 0
-    ) {
-
-        feed.innerHTML = `
-
-            <div class="video-container">
-
-                <div
-                    style="
-                    text-align:center;
-                    color:#777;
-                    "
-                >
-
-                    <h2>
-                        No ${
-                            currentContent ===
-                            "short"
-                            ? "Shorts"
-                            : "Long-form videos"
-                        }
-                        yet.
-                    </h2>
-
-                    <p>
-                        Upload your first Klip!
-                    </p>
-
-                </div>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    videos.forEach(
-        video => {
-
-            createFeedVideo(
-                video,
-                feed
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================
-   CREATE FEED VIDEO
-========================================= */
-
-function createFeedVideo(
-    data,
-    feed
-) {
-
-    const container =
-        document.createElement(
-            "div"
-        );
-
-
-    container.className =
-        "video-container";
-
-
-    const wrapper =
-        document.createElement(
-            "div"
-        );
-
-
-    wrapper.className =
-        "video-wrapper";
-
-
-    const url =
-        URL.createObjectURL(
-            data.video
-        );
-
-
-    wrapper.innerHTML = `
-
-        <video
-            controls
-            loop
-            muted
-            playsinline
-        >
-
-            <source
-                src="${url}"
-                type="${data.video.type}"
-            >
-
-        </video>
-
-
-        <div
-            class="video-info"
-        >
-
-            <div
-                class="video-user"
-            >
-                @${escapeHTML(
-                    data.username
-                )}
-            </div>
-
-
-            <div
-                class="video-title"
-            >
-                ${escapeHTML(
-                    data.title
-                )}
-            </div>
-
-
-            <div
-                class="video-type"
-            >
-                ${
-                    data.type ===
-                    "short"
-                    ? "Short"
-                    : "Long-form"
-                }
-            </div>
-
-        </div>
-
-
-        <div
-            class="video-actions"
-        >
-
-            <div
-                class="profile-action"
-                onclick="openProfile()"
-                title="View profile"
-                ${
-                    data.pfp
-                    ? `style="
-                        background-image:url('${data.pfp}');
-                        background-size:cover;
-                        background-position:center;
-                    "`
-                    : ""
-                }
-            >
-                ${
-                    data.pfp
-                    ? ""
-                    : escapeHTML(
-                        data.username
-                        .charAt(0)
-                        .toUpperCase()
-                    )
-                }
-            </div>
-
-
-            <button
-                class="
-                action-button
-                like-button
-                ${
-                    data.liked
-                    ? "liked"
-                    : ""
-                }
-                "
-                onclick="
-                    likeVideo(
-                        ${data.id},
-                        this
-                    )
-                "
-            >
-
-                ♥
-
-                <small>
-                    ${data.likes}
-                </small>
-
-            </button>
-
-
-            <button
-                class="action-button"
-                onclick="
-                    toggleComments(
-                        ${data.id}
-                    )
-                "
-            >
-
-                💬
-
-                <small>
-                    ${data.comments.length}
-                </small>
-
-            </button>
-
-
-            <button
-                class="action-button"
-                onclick="shareKlip()"
-            >
-
-                ↗
-
-                <small>
-                    Share
-                </small>
-
-            </button>
-
-        </div>
-
-
-        <div
-            class="comments-panel"
-            id="comments-${data.id}"
-        >
-
-            <div
-                class="comments-header"
-            >
-
-                <span>
-                    Comments
-                </span>
-
-                <button
-                    class="close-comments"
-                    onclick="
-                        closeComments(
-                            ${data.id}
-                        )
-                    "
-                >
-                    ✕
-                </button>
-
-            </div>
-
-
-            <div
-                class="comments-list"
-                id="commentList-${data.id}"
-            ></div>
-
-
-            <div
-                class="comment-input-area"
-            >
-
-                <input
-                    class="comment-input"
-                    id="commentInput-${data.id}"
-                    placeholder="Add a comment..."
-                    maxlength="200"
-                >
-
-
-                <button
-                    class="comment-send"
-                    onclick="
-                        addComment(
-                            ${data.id}
-                        )
-                    "
-                >
-                    Send
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    container.appendChild(
-        wrapper
-    );
-
-
-    feed.appendChild(
-        container
-    );
-
-}
-
-
-/* =========================================
-   LIKE ONCE
-========================================= */
-
-function likeVideo(
-    id,
-    button
-) {
-
-    const transaction =
-        db.transaction(
-            ["videos"],
-            "readwrite"
-        );
-
-
-    const store =
-        transaction.objectStore(
-            "videos"
-        );
-
-
-    const request =
-        store.get(id);
-
-
-    request.onsuccess =
-        function() {
-
-            const video =
-                request.result;
-
-
-            if (
-                video.liked
-            ) {
-
-                return;
-
-            }
-
-
-            video.likes++;
-
-            video.liked =
-                true;
-
-
-            store.put(
-                video
-            );
-
-
-            button.classList.add(
-                "liked"
-            );
-
-
-            button.querySelector(
-                "small"
-            ).textContent =
-                video.likes;
-
-        };
-
-}
-
-
-/* =========================================
-   COMMENTS
-========================================= */
-
-function toggleComments(
-    id
-) {
-
-    const panel =
-        document.getElementById(
-            "comments-" +
-            id
-        );
-
-
-    panel.classList.toggle(
-        "open"
-    );
-
-
-    if (
-        panel.classList.contains(
-            "open"
-        )
-    ) {
-
-        loadComments(
-            id
-        );
-
-    }
-
-}
-
-
-function closeComments(
-    id
-) {
-
-    document
-        .getElementById(
-            "comments-" +
-            id
-        )
-        .classList.remove(
-            "open"
-        );
-
-}
-
-
-function loadComments(
-    id
-) {
-
-    const transaction =
-        db.transaction(
-            ["videos"],
-            "readonly"
-        );
-
-
-    const store =
-        transaction.objectStore(
-            "videos"
-        );
-
-
-    const request =
-        store.get(id);
-
-
-    request.onsuccess =
-        function() {
-
-            const video =
-                request.result;
-
-
-            const list =
-                document.getElementById(
-                    "commentList-" +
-                    id
-                );
-
-
-            list.innerHTML = "";
-
-
-            if (
-                video.comments.length ===
-                0
-            ) {
-
-                list.innerHTML = `
-
-                    <div
-                        style="
-                        color:#777;
-                        text-align:center;
-                        padding:25px;
-                        "
-                    >
-                        No comments yet.
-                    </div>
-
-                `;
-
-                return;
-
-            }
-
-
-            video.comments.forEach(
-                comment => {
-
-                    const item =
-                        document.createElement(
-                            "div"
-                        );
-
-
-                    item.className =
-                        "comment";
-
-
-                    item.innerHTML = `
-
-                        <div
-                            class="comment-user"
-                        >
-                            @${escapeHTML(
-                                comment.username
-                            )}
-                        </div>
-
-
-                        <div
-                            class="comment-text"
-                        >
-                            ${escapeHTML(
-                                comment.text
-                            )}
-                        </div>
-
-                    `;
-
-
-                    list.appendChild(
-                        item
-                    );
-
-                }
-            );
-
-        };
-
-}
-
-
-function addComment(
-    id
-) {
-
-    const input =
-        document.getElementById(
-            "commentInput-" +
-            id
-        );
-
-
-    const text =
-        input.value.trim();
-
-
-    if (!text) {
-
-        return;
-
-    }
-
-
-    const transaction =
-        db.transaction(
-            ["videos"],
-            "readwrite"
-        );
-
-
-    const store =
-        transaction.objectStore(
-            "videos"
-        );
-
-
-    const request =
-        store.get(id);
-
-
-    request.onsuccess =
-        function() {
-
-            const video =
-                request.result;
-
-
-            video.comments.push({
-
-                username:
-                    profile.username,
-
-                text:
-                    text
-
-            });
-
-
-            store.put(
-                video
-            );
-
-
-            input.value =
-                "";
-
-
-            loadComments(
-                id
-            );
-
-
-            loadVideos();
-
-        };
-
-}
-
-
-/* =========================================
-   MY VIDEOS
-========================================= */
-
-function displayMyVideos(
-    videos
-) {
-
-    const area =
-        document.getElementById(
-            "myVideos"
-        );
-
-
-    area.innerHTML = "";
-
-
-    if (
-        videos.length ===
-        0
-    ) {
-
-        area.innerHTML = `
-
-            <div class="empty">
-                You haven't uploaded
-                any Klips yet.
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    videos.forEach(
-        video => {
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "profile-video";
-
-
-            const url =
-                URL.createObjectURL(
-                    video.video
-                );
-
-
-            card.innerHTML = `
-
-                <video
-                    controls
-                    loop
-                    muted
-                >
-
-                    <source
-                        src="${url}"
-                        type="${video.video.type}"
-                    >
-
-                </video>
-
-
-                <div
-                    class="profile-video-info"
-                >
-
-                    <strong>
-                        ${escapeHTML(
-                            video.title
-                        )}
-                    </strong>
-
-
-                    <br>
-
-
-                    <small>
-                        ${
-                            video.type ===
-                            "short"
-                            ? "Short"
-                            : "Long-form"
-                        }
-                        • ♥
-                        ${video.likes}
-                    </small>
-
-
-                    <br>
-
-
-                    <button
-                        class="delete-button"
-                        onclick="
-                            deleteVideo(
-                                ${video.id}
-                            )
-                        "
-                    >
-                        Delete
-                    </button>
-
-                </div>
-
-            `;
-
-
-            area.appendChild(
-                card
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================
-   DELETE
-========================================= */
-
-function deleteVideo(
-    id
-) {
-
-    if (
-        !confirm(
-            "Delete this Klip?"
-        )
-    ) {
-
-        return;
-
-    }
-
-
-    const transaction =
-        db.transaction(
-            ["videos"],
-            "readwrite"
-        );
-
-
-    const store =
-        transaction.objectStore(
-            "videos"
-        );
-
-
-    store.delete(
-        id
-    );
-
-
-    transaction.oncomplete =
-        function() {
-
-            loadVideos();
-
-        };
-
-}
-
-
-/* =========================================
-   SEARCH
-========================================= */
-
-document
-    .getElementById(
-        "search"
-    )
-    .addEventListener(
-        "input",
-        function() {
-
-            const search =
-                this.value
-                .toLowerCase();
-
-
-            const containers =
-                document.querySelectorAll(
-                    ".video-container"
-                );
-
-
-            containers.forEach(
-                container => {
-
-                    const text =
-                        container.textContent
-                        .toLowerCase();
-
-
-                    container.style.display =
-                        text.includes(
-                            search
-                        )
-                        ? ""
-                        : "none";
-
-                }
-            );
-
-        }
-    );
-
-
-/* =========================================
-   NAVIGATION
-========================================= */
-
-function openProfile() {
-
-    document.getElementById(
-        "feedPage"
-    ).style.display =
-        "none";
-
-
-    document.getElementById(
-        "profilePage"
-    ).classList.add(
-        "active"
-    );
-
-
-    loadProfile();
-
-}
-
-
-function goHome() {
-
-    document.getElementById(
-        "profilePage"
-    ).classList.remove(
-        "active"
-    );
-
-
-    document.getElementById(
-        "feedPage"
-    ).style.display =
-        "block";
-
-
-    loadVideos();
-
-}
-
-
-/* =========================================
-   SHARE
-========================================= */
-
-function shareKlip() {
-
-    if (
-        navigator.share
-    ) {
-
-        navigator.share({
-
-            title:
-                "Klip",
-
-            text:
-                "Check out this Klip!"
+          followers:
+            arrayRemove(currentUser.uid)
 
         });
 
-    } else {
+        await updateDoc(myRef, {
 
-        alert(
-            "Sharing isn't supported by this browser."
-        );
+          following:
+            arrayRemove(viewedUser.uid)
+
+        });
+
+        status("Unfollowed.");
+
+      } else {
+
+        await updateDoc(theirRef, {
+
+          followers:
+            arrayUnion(currentUser.uid)
+
+        });
+
+        await updateDoc(myRef, {
+
+          following:
+            arrayUnion(viewedUser.uid)
+
+        });
+
+        status("Following!");
+
+      }
+
+
+      await openProfile(viewedUser.uid);
+
+    } catch(error) {
+
+      console.error(error);
+
+      status("Could not update follow.");
 
     }
 
-}
+  };
 
 
-/* =========================================
-   UPDATE USERNAMES
-========================================= */
+  // MY PROFILE
 
-function updateVideoUsernames() {
+  window.openMyProfile = async function() {
 
-    const transaction =
-        db.transaction(
-            ["videos"],
-            "readwrite"
+    if(!currentUser) return;
+
+
+    const snap =
+      await getDoc(
+        doc(db, "users", currentUser.uid)
+      );
+
+
+    if(!snap.exists()) return;
+
+
+    const user =
+      snap.data();
+
+
+    document.getElementById("homePage")
+      .classList.remove("active");
+
+    document.getElementById("profilePage")
+      .classList.remove("active");
+
+    document.getElementById("myProfilePage")
+      .classList.add("active");
+
+
+    document.getElementById("myProfilePfp").src =
+      user.photoURL || defaultPfp;
+
+    document.getElementById("myProfileName").textContent =
+      user.name || "Klip User";
+
+    document.getElementById("myProfileUsername").textContent =
+      "@" + (user.username || "");
+
+  };
+
+
+  // EDIT PROFILE
+
+  window.editProfile = async function() {
+
+    if(!currentUser) return;
+
+
+    const snap =
+      await getDoc(
+        doc(db, "users", currentUser.uid)
+      );
+
+
+    if(!snap.exists()) return;
+
+
+    const user =
+      snap.data();
+
+
+    document.getElementById("editName").value =
+      user.name || "";
+
+    document.getElementById("editUsername").value =
+      user.username || "";
+
+    document.getElementById("editPfp").value =
+      user.photoURL || "";
+
+
+    document
+      .getElementById("editModal")
+      .classList.add("show");
+
+  };
+
+
+  window.closeEdit = function() {
+
+    document
+      .getElementById("editModal")
+      .classList.remove("show");
+
+  };
+
+
+  // SAVE PROFILE
+
+  window.saveProfile = async function() {
+
+    if(!currentUser) return;
+
+
+    const name =
+      document.getElementById("editName")
+        .value.trim();
+
+
+    const username =
+      document.getElementById("editUsername")
+        .value.trim()
+        .replace(/^@/, "")
+        .toLowerCase();
+
+
+    const photoURL =
+      document.getElementById("editPfp")
+        .value.trim();
+
+
+    if(!name || !username) {
+
+      status("Name and username are required.");
+
+      return;
+
+    }
+
+
+    if(!/^[a-z0-9_]+$/.test(username)) {
+
+      status("Username can only use letters, numbers and _.");
+
+      return;
+
+    }
+
+
+    try {
+
+      // Check whether another user already has this username
+
+      const q =
+        query(
+          collection(db, "users"),
+          where("usernameLower", "==", username)
         );
 
 
-    const store =
-        transaction.objectStore(
-            "videos"
-        );
+      const results =
+        await getDocs(q);
 
 
-    const request =
-        store.getAll();
+      let usernameTaken = false;
 
 
-    request.onsuccess =
-        function() {
+      results.forEach(result => {
 
-            request.result.forEach(
-                video => {
+        if(result.id !== currentUser.uid) {
 
-                    video.username =
-                        profile.username;
+          usernameTaken = true;
 
-                    video.pfp =
-                        profile.pfp;
+        }
+
+      });
 
 
-                    store.put(
-                        video
-                    );
+      if(usernameTaken) {
 
-                }
-            );
+        status("That username is already taken.");
 
+        return;
 
-            setTimeout(
-                loadVideos,
-                100
-            );
-
-        };
-
-}
+      }
 
 
-/* =========================================
-   ESCAPE HTML
-========================================= */
+      await updateDoc(
+        doc(db, "users", currentUser.uid),
+        {
 
-function escapeHTML(
-    text
-) {
+          name: name,
 
-    const div =
-        document.createElement(
-            "div"
-        );
+          username: username,
 
+          usernameLower: username,
 
-    div.textContent =
-        text;
+          photoURL: photoURL || defaultPfp
+
+        }
+      );
 
 
-    return div.innerHTML;
+      document.getElementById("headerPfp").src =
+        photoURL || defaultPfp;
 
-}
+
+      closeEdit();
+
+      await openMyProfile();
+
+      status("Profile updated!");
+
+    } catch(error) {
+
+      console.error(error);
+
+      status("Couldn't save profile.");
+
+    }
+
+  };
+
+
+  // HOME
+
+  window.showHome = function() {
+
+    document.getElementById("profilePage")
+      .classList.remove("active");
+
+    document.getElementById("myProfilePage")
+      .classList.remove("active");
+
+    document.getElementById("homePage")
+      .classList.add("active");
+
+  };
+
+
+  // BASIC HTML ESCAPE
+
+  function escapeHtml(value) {
+
+    return String(value)
+
+      .replaceAll("&", "&amp;")
+
+      .replaceAll("<", "&lt;")
+
+      .replaceAll(">", "&gt;")
+
+      .replaceAll('"', "&quot;")
+
+      .replaceAll("'", "&#039;");
+
+  }
 
 </script>
 
